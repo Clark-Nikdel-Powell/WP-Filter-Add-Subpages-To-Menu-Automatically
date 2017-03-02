@@ -19,7 +19,8 @@ function filter_in_sub_pages( $items, $args ) {
 	$tmp = array();
 	foreach ( $items as $key => $i ) {
 
-		$tmp[] = $i;
+		$i->menu_item_has_children = false;
+		$has_children_class        = 'menu-item-has-children';
 
 		//if not page move on
 		if ( 'page' !== $i->object ) {
@@ -34,33 +35,48 @@ function filter_in_sub_pages( $items, $args ) {
 
 		$children = get_pages( array( 'child_of' => $i->object_id, 'sort_column' => 'menu_order' ) );
 
+		if ( ! empty( $children ) ) {
+			$i->menu_item_has_children = true;
+			if ( ! in_array( $has_children_class, $i->classes, true ) ) {
+				$i->classes[] = $has_children_class;
+			}
+		}
+
+		// Add the item to the temp array before proceeding
+		$tmp[ $i->ID ] = $i;
+
 		foreach ( (array) $children as $c ) {
 
 			if ( intval( $i->object_id ) === $c->post_parent ) {
 				$menu_item_parent_id = $i->ID;
 			} else {
-				$menu_item_parent_id = $c->post_parent;
+				$menu_item_parent_id                                 = $c->post_parent;
+				$tmp[ $menu_item_parent_id ]->menu_item_has_children = true;
+				if ( ! in_array( $has_children_class, $tmp[ $menu_item_parent_id ]->classes, true ) ) {
+					$tmp[ $menu_item_parent_id ]->classes[] = $has_children_class;
+				}
 			}
 
 			//set parent menu
-			$c->menu_item_parent      = $menu_item_parent_id;
-			$c->object_id             = $c->ID;
-			$c->post_name             = $c->ID;
-			$c->db_id                 = $c->ID;
-			$c->object                = 'page';
-			$c->type                  = 'post_type';
-			$c->type_label            = 'Page';
-			$c->url                   = get_permalink( $c->ID );
-			$c->title                 = $c->post_title;
-			$c->target                = '';
-			$c->attr_title            = '';
-			$c->description           = '';
-			$c->classes               = array( '', 'menu-item', 'menu-item-type-post_type', 'menu-item-object-page' );
-			$c->xfn                   = '';
-			$c->current               = ( $post->ID == $c->ID ) ? true : false;
-			$c->current_item_ancestor = ( $post->ID == $c->post_parent ) ? true : false;
-			$c->current_item_parent   = ( $post->ID == $c->post_parent ) ? true : false;
-			$tmp[]                    = $c;
+			$c->menu_item_parent       = $menu_item_parent_id;
+			$c->object_id              = $c->ID;
+			$c->post_name              = $c->ID;
+			$c->db_id                  = $c->ID;
+			$c->object                 = 'page';
+			$c->type                   = 'post_type';
+			$c->type_label             = 'Page';
+			$c->url                    = get_permalink( $c->ID );
+			$c->title                  = $c->post_title;
+			$c->target                 = '';
+			$c->attr_title             = '';
+			$c->description            = '';
+			$c->classes                = array();
+			$c->xfn                    = '';
+			$c->current                = ( $post->ID == $c->ID ) ? true : false;
+			$c->current_item_ancestor  = ( $post->ID == $c->post_parent ) ? true : false;
+			$c->current_item_parent    = ( $post->ID == $c->post_parent ) ? true : false;
+			$c->menu_item_has_children = false;
+			$tmp[ $c->ID ]             = $c;
 		}
 	}
 
