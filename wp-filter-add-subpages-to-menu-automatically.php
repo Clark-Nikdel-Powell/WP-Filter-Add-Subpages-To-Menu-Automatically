@@ -22,16 +22,10 @@ function filter_in_sub_pages( $items, $args ) {
 		$i->menu_item_has_children = false;
 		$has_children_class        = 'menu-item-has-children';
 
-		//if not page move on
+		// if not page move on.
 		if ( 'page' !== $i->object ) {
 			continue;
 		}
-
-		/*$page = get_post( $i->object_id );
-		//if not parent page move on
-		if ( ! isset( $page->post_parent ) || 0 !== $page->post_parent ) {
-			continue;
-		}*/
 
 		$children = get_pages( array( 'child_of' => $i->object_id, 'sort_column' => 'menu_order' ) );
 
@@ -42,7 +36,7 @@ function filter_in_sub_pages( $items, $args ) {
 			}
 		}
 
-		// Add the item to the temp array before proceeding
+		// Add the item to the temp array before proceeding.
 		$tmp[ $i->ID ] = $i;
 
 		foreach ( (array) $children as $c ) {
@@ -57,7 +51,7 @@ function filter_in_sub_pages( $items, $args ) {
 				}
 			}
 
-			//set parent menu
+			// Set parent menu.
 			$c->menu_item_parent       = $menu_item_parent_id;
 			$c->object_id              = $c->ID;
 			$c->post_name              = $c->ID;
@@ -72,11 +66,15 @@ function filter_in_sub_pages( $items, $args ) {
 			$c->description            = '';
 			$c->classes                = array();
 			$c->xfn                    = '';
-			$c->current                = ( $post->ID == $c->ID ) ? true : false;
-			$c->current_item_ancestor  = ( $post->ID == $c->post_parent ) ? true : false;
-			$c->current_item_parent    = ( $post->ID == $c->post_parent ) ? true : false;
 			$c->menu_item_has_children = false;
-			$tmp[ $c->ID ]             = $c;
+
+			if ( is_object( $post ) && isset( $post->ID ) ) {
+				$c->current               = ( $post->ID === $c->ID ) ? true : false;
+				$c->current_item_ancestor = ( $post->ID === $c->post_parent ) ? true : false;
+				$c->current_item_parent   = ( $post->ID === $c->post_parent ) ? true : false;
+			}
+
+			$tmp[ $c->ID ] = $c;
 		}
 	}
 
